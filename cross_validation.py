@@ -23,52 +23,53 @@ if __name__ == "__main__":
 
     print '#### Cross validation (%s) ####' % cv
 
-    print '- without ipython_cluster (n_jobs=%d)' % -1
+    print '## without ipython_cluster (n_jobs=%d)' % -1
     start = time.time()
     scores = cross_validation.cross_val_score(clf, samples.data, samples.target, cv=cv, n_jobs=-1)
     elapsed_time = time.time() - start
-    print 'CV socres: %f' % scores.mean()
-    print 'elapsed_time: %f sec' % elapsed_time
+    print '\tCV socres: %f' % scores.mean()
+    print '\telapsed_time: %f sec' % elapsed_time
 
-    print '- with ipython_cluster'
+    print '## with ipython_cluster'
     start = time.time()
     scores = ipp.cross_val_score(clf, samples.data, samples.target, cv=cv, n_jobs=-1)
     elapsed_time = time.time() - start
-    print 'CV socres: %f' % scores.mean()
-    print 'elapsed_time: %f sec' % elapsed_time
+    print '\tCV socres: %f' % scores.mean()
+    print '\telapsed_time: %f sec' % elapsed_time
 
 
 
+    print
     print '#### Cross validation (%s) with grid_search (%s) ####' % (cv, nested_cv)
     grids = {'C': [1, 10, 100]}
     clf_grid = grid_search.GridSearchCV(clf, grids, cv=nested_cv)
 
-    print '- without ipython_cluster (n_jobs=%d)' % -1
+    print '## without ipython_cluster (n_jobs=%d)' % -1
     start = time.time()
     scores = cross_validation.cross_val_score(clf_grid, samples.data, samples.target, cv=cv, n_jobs=-1)
     elapsed_time = time.time() - start
-    print 'CV socres: %f' % scores.mean()
-    print 'elapsed_time: %f sec' % elapsed_time
+    print '\tCV socres: %f' % scores.mean()
+    print '\telapsed_time: %f sec' % elapsed_time
 
-    print '- with ipython_cluster'
+    print '## with ipython_cluster'
     start = time.time()
     scores = ipp.cross_val_score(clf_grid, samples.data, samples.target, cv=cv, n_jobs=-1)
     elapsed_time = time.time() - start
-    print 'CV socres: %f' % scores.mean()
-    print 'elapsed_time: %f sec' % elapsed_time
+    print '\tCV socres: %f' % scores.mean()
+    print '\telapsed_time: %f sec' % elapsed_time
 
-    print '- with ipython_cluster in grid_search'
+    print '## with ipython_cluster in grid_search'
     clf_grid = ipp.GridSearchCV(clf, grids, cv=nested_cv, grid_parallel=True)
     start = time.time()
     scores = cross_validation.cross_val_score(clf_grid, samples.data, samples.target, cv=cv, n_jobs=-1)
     elapsed_time = time.time() - start
-    print 'CV socres: %f' % scores.mean()
-    print 'elapsed_time: %f sec' % elapsed_time
+    print '\tCV socres: %f' % scores.mean()
+    print '\telapsed_time: %f sec' % elapsed_time
 
-    print '- with ipython_cluster in nested cv'
+    print '## with ipython_cluster in nested cv'
     clf_grid = ipp.GridSearchCV(clf, grids, cv=nested_cv, grid_parallel=False)
     start = time.time()
     scores = cross_validation.cross_val_score(clf_grid, samples.data, samples.target, cv=cv, n_jobs=-1)
     elapsed_time = time.time() - start
-    print 'CV socres: %f' % scores.mean()
-    print 'elapsed_time: %f sec' % elapsed_time
+    print '\tCV socres: %f' % scores.mean()
+    print '\telapsed_time: %f sec' % elapsed_time
