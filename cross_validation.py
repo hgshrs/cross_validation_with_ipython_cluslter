@@ -10,8 +10,8 @@ import time
 if __name__ == "__main__":
 
 
-    # samples = datasets.load_iris()
-    samples = datasets.load_digits()
+    samples = datasets.load_iris()
+    # samples = datasets.load_digits()
     n_samples = len(samples.target)
 
     clf = svm.SVC(kernel='linear', C=1)
@@ -39,7 +39,6 @@ if __name__ == "__main__":
 
 
 
-    print '\n'
     print '#### Cross validation (%s) with grid_search (%s) ####' % (cv, nested_cv)
     grids = {'C': [1, 10, 100]}
     clf_grid = grid_search.GridSearchCV(clf, grids, cv=nested_cv)
