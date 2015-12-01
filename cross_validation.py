@@ -4,6 +4,7 @@ from sklearn import datasets
 from sklearn import svm
 from sklearn import grid_search
 import ipython_parallel as ipp
+reload(ipp)
 import time
 
 
@@ -16,7 +17,8 @@ if __name__ == "__main__":
 
     clf = svm.SVC(kernel='linear', C=1)
 
-    # cv = cross_validation.ShuffleSplit(n_samples, n_iter=100, test_size=.1)
+    # cv = cross_validation.ShuffleSplit(n_samples, n_iter=10, test_size=.1)
+    # nested_cv = 10
     cv = cross_validation.LeaveOneOut(n_samples)
     nested_cv = cross_validation.LeaveOneOut(n_samples-1)
 
@@ -59,17 +61,17 @@ if __name__ == "__main__":
     print '\telapsed_time: %f sec' % elapsed_time
 
     print '## with ipython_cluster in grid_search'
-    clf_grid = ipp.GridSearchCV(clf, grids, cv=nested_cv, grid_parallel=True)
+    clf_grid = ipp.GridSearchCV(clf, grids, cv=nested_cv, grid_parallel=True, n_jobs=4)
     start = time.time()
-    scores = cross_validation.cross_val_score(clf_grid, samples.data, samples.target, cv=cv, n_jobs=-1)
+    scores = cross_validation.cross_val_score(clf_grid, samples.data, samples.target, cv=cv, n_jobs=1)
     elapsed_time = time.time() - start
     print '\tCV socres: %f' % scores.mean()
     print '\telapsed_time: %f sec' % elapsed_time
 
     print '## with ipython_cluster in nested cv'
-    clf_grid = ipp.GridSearchCV(clf, grids, cv=nested_cv, grid_parallel=False)
+    clf_grid = ipp.GridSearchCV(clf, grids, cv=nested_cv, grid_parallel=False, n_jobs=4)
     start = time.time()
-    scores = cross_validation.cross_val_score(clf_grid, samples.data, samples.target, cv=cv, n_jobs=-1)
+    scores = cross_validation.cross_val_score(clf_grid, samples.data, samples.target, cv=cv, n_jobs=1)
     elapsed_time = time.time() - start
     print '\tCV socres: %f' % scores.mean()
     print '\telapsed_time: %f sec' % elapsed_time

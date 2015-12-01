@@ -3,6 +3,7 @@ from IPython.parallel import Client
 from sklearn import grid_search
 from sklearn import cross_validation
 from sklearn.base import clone
+from sklearn.metrics.scorer import check_scoring
 import numpy as np
 
 def cross_val_score(estimator, X, y, scoring=None, cv=10, profile='net', n_jobs=-1, verbose=None):
@@ -18,12 +19,9 @@ def cross_val_score(estimator, X, y, scoring=None, cv=10, profile='net', n_jobs=
                 'estimator':estimator,
                 'scoring':scoring
                 })
-    rc = Client(profile=profile)
-    if n_jobs == -1:
-        dview = rc[:]
-    else:
-        dview = rc[:n_jobs]
+    dview = random_rc(profile=profile, n_jobs=n_jobs, n_executed_jobs=len(input_sets))
     results = dview.map_sync(score_out, input_sets)
+    dview.client.close()
     return np.array(results)
 
 def grid_cv_scores(estimator, X, y, grid, scoring=None, cv=10, profile='net', n_jobs=-1, verbose=None):
@@ -39,12 +37,9 @@ def grid_cv_scores(estimator, X, y, grid, scoring=None, cv=10, profile='net', n_
             'scoring':scoring,
             'cv':cv
             })
-    rc = Client(profile=profile)
-    if n_jobs == -1:
-        dview = rc[:]
-    else:
-        dview = rc[:n_jobs]
+    dview = random_rc(profile=profile, n_jobs=n_jobs, n_executed_jobs=len(input_sets))
     results = dview.map_sync(scores_out, input_sets)
+    dview.client.close()
     scores = []
     grid_scores = []
     for ii in range(len(grid)):
@@ -62,7 +57,7 @@ def scores_out(input_sets):
     y = input_sets['y']
     scoring = input_sets['scoring']
     cv = input_sets['cv']
-    return cross_validation.cross_val_score(estimator, X, y, scoring, cv)
+    return cross_validation.cross_val_score(estimator, X, y, scoring, cv, n_jobs=1)
 
 def score_out(input_set):
     # import socket
@@ -77,8 +72,8 @@ def score_out(input_set):
 
 class GridSearchCV(grid_search.BaseSearchCV):
 
-    def __init__(self, estimator, param_grid, profile=None, grid_parallel=True, scoring=None, loss_func=None,
-            score_func=None, fit_params=None, n_jobs=1, iid=True,
+    def __init__(self, estimator, param_grid, profile='net', grid_parallel=True, scoring=None, loss_func=None,
+            score_func=None, fit_params=None, n_jobs=-1, iid=True,
             refit=True, cv=None, verbose=0, pre_dispatch='2*n_jobs',
             error_score='raise'):
 
@@ -98,6 +93,7 @@ class GridSearchCV(grid_search.BaseSearchCV):
             return self._fit(X, y, grid_search.ParameterGrid(self.param_grid))
 
     def fit_ipp(self, X, y, grid):
+        self.scorer_ = check_scoring(self.estimator, scoring=self.scoring)
         if self.grid_parallel:
             scores, grid_scores = grid_cv_scores(self.estimator, X, y, grid, self.scoring, self.cv,
                     self.profile, self.n_jobs, self.verbose)
@@ -126,6 +122,24 @@ class GridSearchCV(grid_search.BaseSearchCV):
 
         return self
 
+def random_rc(profile, n_jobs=-1, n_executed_jobs=0):
+    # print n_jobs, n_executed_jobs,
+    rc = Client(profile=profile)
+    n_clusters = len(rc)
+    if n_executed_jobs == 0:
+        n_executed_jobs = n_jobs
+    elif n_executed_jobs < n_clusters:
+        n_jobs = n_executed_jobs
+    if n_jobs >= n_clusters:
+        dview = rc[:]
+    elif n_jobs == -1:
+        dview = rc[:]
+    elif n_jobs < n_clusters:
+        dview = rc[list(np.random.permutation(n_clusters)[:n_executed_jobs])]
+    # A = dview.queue_status()
+    # print A.keys()
+    return dview
+
 
 if __name__ == "__main__":
 
@@ -133,3 +147,9 @@ if __name__ == "__main__":
     A = rc.queue_status()
     for ii in range(len(rc)):
         print A[ii]
+
+    # dview = random_rc('net', -1, 10)
+    # A = dview.queue_status()
+    # print len(dview)
+    # for ii in A.keys():
+        # print A[ii]
