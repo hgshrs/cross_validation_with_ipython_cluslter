@@ -60,6 +60,7 @@ if __name__ == "__main__":
     print '\tCV socres: %f' % scores.mean()
     print '\telapsed_time: %f sec' % elapsed_time
 
+    '''
     print '## with ipython_cluster in grid_search'
     clf_grid = ipp.GridSearchCV(clf, grids, cv=nested_cv, grid_parallel=True, n_jobs=4)
     start = time.time()
@@ -75,3 +76,4 @@ if __name__ == "__main__":
     elapsed_time = time.time() - start
     print '\tCV socres: %f' % scores.mean()
     print '\telapsed_time: %f sec' % elapsed_time
+    '''
